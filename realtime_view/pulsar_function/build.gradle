@@ -1,0 +1,40 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '6.1.0'
+    id 'java'
+}
+
+jar {
+    manifest {
+        attributes(
+                    'Main-Class': 'com.example.SensorWarnFilterFunc'
+        )
+    }
+}
+
+group 'com.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+
+    // https://mvnrepository.com/artifact/org.apache.pulsar/pulsar-functions-api
+    implementation group: 'org.apache.pulsar', name: 'pulsar-functions-api', version: '2.7.1'
+
+    // https://mvnrepository.com/artifact/org.apache.pulsar/pulsar-client
+    implementation group: 'org.apache.pulsar', name: 'pulsar-client', version: '2.7.1'
+
+    // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
+
+    // https://mvnrepository.com/artifact/org.apache.avro/avro
+    implementation group: 'org.apache.avro', name: 'avro', version: '1.10.2'
+}
+
+test {
+    useJUnitPlatform()
+}

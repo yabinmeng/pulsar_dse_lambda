@@ -1,0 +1,96 @@
+package com.example;
+
+import org.apache.avro.io.DecoderFactory;
+import org.apache.avro.io.JsonDecoder;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.pulsar.client.api.MessageId;
+import org.apache.pulsar.client.api.Schema;
+import org.apache.pulsar.client.api.TypedMessageBuilder;
+import org.apache.pulsar.functions.api.Context;
+import org.apache.pulsar.functions.api.Function;
+import org.slf4j.Logger;
+
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.concurrent.CompletableFuture;
+
+public class SensorWarnFilterFunc implements Function<String, Void> {
+    private static final float TEMP_WARN_THRESHOLD = 400;
+    private static final float SPEED_WARN_THRESHOLD = 2500;
+
+    // for testing purposes
+    //private static final String input = "{\"DrillID\": \"DRL-001\", \"SensorID\": \"SNS-temp-01\", \"SensorType\": \"temp\", \"ReadingTime\": \"2021-04-05T17:10:22\", \"ReadingValue\": 399.000000}";
+    //private static final String input2 = "{\"DrillID\": \"DRL-001\", \"SensorID\": \"SNS-speed-02\", \"SensorType\": \"speed\", \"ReadingTime\": \"2021-04-05T17:10:22\", \"ReadingValue\": 1831.130005}";
+
+    @Override
+    public Void process(String input, Context context) throws Exception {
+        // Incoming sensor data payload has the following json format (see above)
+
+        LocalDate now = LocalDate.now(ZoneOffset.UTC);
+        LocalDateTime todayStart = now.atStartOfDay();
+
+        if (!StringUtils.isBlank(input)) {
+            String str = StringUtils.strip(input, "{}");
+
+            String[] arr = StringUtils.split(str, ",");
+
+            String drillIdStr = StringUtils.strip(StringUtils.split(arr[0], ":")[1].trim(), "\"");
+            String sensorIdStr = StringUtils.strip(StringUtils.split(arr[1], ":")[1].trim(), "\"");
+            String sensorType = StringUtils.strip(StringUtils.split(arr[2], ":")[1].trim(), "\"");
+            String readingTimeStr = StringUtils.strip(StringUtils.substringAfter(arr[3], ":").trim(), "\"");
+            LocalDateTime readingTime = LocalDateTime.parse(readingTimeStr, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            LocalDate readingDate = readingTime.toLocalDate();
+            float readValue = Float.parseFloat(
+                    StringUtils.strip(StringUtils.substringAfter(arr[4], ":").trim(), "\""));
+
+            // Only keep most recent messages
+            if ( ! readingTime.isBefore(todayStart) ) {
+                // Only keep messages with reading values beyond the thresholds
+                boolean tempWarning =
+                        ( StringUtils.equalsIgnoreCase(sensorType, "temp") &&
+                          (readValue >TEMP_WARN_THRESHOLD) );
+
+                boolean speedWarning =
+                        ( StringUtils.equalsIgnoreCase(sensorType, "speed") &&
+                                (readValue > SPEED_WARN_THRESHOLD) );
+
+                if (tempWarning || speedWarning) {
+                    String outputMsgPayload = String.format(
+                            "{" +
+                                    "\"DrillID\": \"%s\", " +
+                                    "\"SensorID\": \"%s\", " +
+                                    "\"ReadingDate\": \"%s\", " +
+                                    "\"ReadingTime\": \"%s\", " +
+                                    "\"SensorType\": \"%s\", " +
+                                    "\"ReadingValue\": %f" +
+                            "}",
+                            drillIdStr,
+                            sensorIdStr,
+                            readingDate.format(DateTimeFormatter.ISO_LOCAL_DATE),
+                            readingTimeStr,
+                            sensorType,
+                            readValue);
+
+                    String outputTopic = context.getOutputTopic();
+                    TypedMessageBuilder messageBuilder
+                            = context.newOutputMessage(outputTopic, Schema.BYTES);
+                    messageBuilder.value(outputMsgPayload.getBytes(StandardCharsets.UTF_8));
+
+                    Logger LOG = context.getLogger();
+                    CompletableFuture<MessageId> future = messageBuilder.sendAsync();
+                    future.whenComplete((messageId, throwable) ->
+                                LOG.trace("Failed to publish message: " + outputMsgPayload ))
+                            .exceptionally(ex -> {
+                                LOG.trace("Failed to publish message: " + outputMsgPayload );
+                                return null;
+                            });
+                }
+            }
+        }
+
+        return null;
+    }
+}
