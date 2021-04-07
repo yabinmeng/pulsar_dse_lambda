@@ -1,0 +1,12 @@
+{
+  "type": "record",
+  "name": "IotSensor",
+  "namespace": "TestNS",
+  "fields" : [
+    {"name": "DrillID", "type": "string"},
+    {"name": "SensorID", "type": "string"},
+    {"name": "SensorType", "type": "string"},
+    {"name": "ReadingTime", "type": "string"},
+    {"name": "ReadingValue", "type": "float"}
+  ]
+}

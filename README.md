@@ -124,14 +124,58 @@ Pulsar has native schema support. In this demo, we're using the following Avro s
 
 In this demo, there are several programs/utilities that altogther form a complete end-to-end data processing flow following the lambda architecture:
 
-| Item | Program | Description | Note |
-| ---- | ------- | ----------- | ---- |
-| 1. | Workload Simulator | Generates a set of simulated drill sesnor data in CSV format | Data Source |
-| 2. | Data bulk loading utility (*) | Load the raw sensor data into the raw data master DB | **[DataStax Bulk Loader](https://docs.datastax.com/en/dsbulk/doc/index.html)** |
-| 3. | Pulsar producer | Publish the raw sensor data to a Pulsar topic | Speed layer |
-| 4. | Pulsar function | Further realtime stream processing to generate the realtime view | Speed layer |
-| 5. | Daily batch job | Daily ETL job to generate the batch view from the raw data master DB | Batch layer |
-
+| Item | Program | Description | Note | Location |
+| ---- | ------- | ----------- | ---- | -------- |
+| 1. | Workload Simulator | Generates a set of simulated drill sesnor data in CSV format | Data Source | [workload_generator](./workload_generator) |
+| 2. | Data bulk loading utility (*) | Load the raw sensor data into the raw data master DB | External utility |[DataStax Bulk Loader](https://docs.datastax.com/en/dsbulk/doc/index.html) |
+| 3. | Pulsar producer | Publish the raw sensor data to a Pulsar topic | Speed layer | [realtime_view/pulsar_producer](./realtime_view/pulsar_producer) |
+| 4. | Pulsar function | Further realtime stream processing to generate the realtime view | Speed layer | [realtime_view/pulsar_function](./realtime_view/pulsar_function) |
+| 5. | Daily batch job | Daily ETL job to generate the batch view from the raw data master DB | Batch layer | [batch_view/daily_batch](./batch_view/daily_batch) |
 
 **NOTE**: Other than the data loading utility (item 2), all other programs are custom made for the purpose of this demo.
 
+
+With these programs and utilities, the high level end-to-end data processing flow is as below:
+
+## Pre-step: Create C* Keyspace and Table
+```
+$ cqlsh -f drill_sensor.cql
+```
+
+## Step 1: Generate simulated workload file
+
+The main program, **WorkloadGen**, used for generating the simulated workload file takes the following input parameters:
+
+```
+usage: WorkloadGen [-f <arg>] [-h] [-o <arg>]
+
+WorkloadGen:
+  -f,--config <arg> Configuration properties file.
+  -h,--help         Displays this help message.
+  -o,--output <arg> Output CSV file name.
+```
+
+Among these paramters, *-f/--config* specifies the configuration property file locaiont that controls how the drill sensor data is generated, which has the following configuration properties:
+* drill_num: the total number of drills
+* sensor_types: the list of sensor types (separated by ',')
+* sensor_num_per_type: the number of sensors per type
+* workload_frequency: the frequency of one batch of the sample data records being generated. One batch of the sample data covers all sensors under all types for all drills.
+* workload_period: the total time range that the sample data will be generated
+* workload_enddate: the end date of the simulated workload
+
+An example file (*generator.properties*) can be found [here](./workload_generator/src/main/resources/generator.properties). 
+
+An example of running this proram to generate a workload file is as below:
+
+```
+$ java -jar build/libs/Workload_Generator-1.0-SNAPSHOT-all.jar -f </path/to/generator.properties> -o </path/to/workload_gen.csv>
+
+```
+
+## Step 2: Load the source data into the batch layer and the speed layer
+
+## Step 3: Run batch job to generate the batch view
+
+## Step 4-1: Deploy Pulsar function for realtime stream processing
+
+## Step 4-2: Deploy Pulsar Cassandra sink connector to generate the realtime view

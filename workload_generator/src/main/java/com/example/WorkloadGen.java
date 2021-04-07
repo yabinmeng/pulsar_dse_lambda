@@ -48,8 +48,8 @@ public class WorkloadGen {
         try {
             HelpFormatter formatter = new HelpFormatter();
 
-            formatter.printHelp(errWriter, 150, "WuPocMain",
-                    "\nWuPocMain options:",
+            formatter.printHelp(errWriter, 150, "WorkloadGen",
+                    "\nWorkloadGen:",
                     options, 2, 1, "", true);
 
             System.out.println();
@@ -198,7 +198,7 @@ public class WorkloadGen {
 
             // Print help message
             if (cmd.hasOption(WorkloadGenUtil.CMD_OPTION_HELP_SHORT)) {
-                usageAndExit(20);
+                usageAndExit(0);
             }
 
             // "-f/--config" option is a must.
