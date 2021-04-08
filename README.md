@@ -39,7 +39,7 @@ By the above diagram,
 
 ## 1.1. Demo Environment
 
-In this demo, for simplicity purposes, I'm using [DataStax Enterprise (DSE)](https://www.datastax.com/products/datastax-enterprise) as one unified platform for both C* storage and Spark processing. But OSS C* and Spark can definitely be used, but it requires setting up 2 separate clusters.
+In this demo, for simplicity purposes, I'm using [DataStax Enterprise (DSE)](https://www.datastax.com/products/datastax-enterprise) as one unified platform for both C* storage and Spark processing. OSS C* and Spark can definitely be used here, but it requires setting up 2 separate clusters instead of only 1 DSE cluster.
 
 The DSE version used in this demo is version **6.8.10**.
 
@@ -358,4 +358,4 @@ pulsar-admin sinks create \
     --inputs persistent://public/default/warning_sensor_data
 ```
 
-Once the DS Pular C* sink connector is successfully deployed, any message that is published to the warning sensor topic will be automatically written into the real time view table.
+Once the DS Pular C* sink connector is successfully deployed, any message that is published to the warning sensor topic will be automatically written into the real time view table. 
