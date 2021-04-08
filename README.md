@@ -156,10 +156,10 @@ In this demo, there are several programs/utilities that altogether form a comple
 | Item | Program | Description | Note | Location |
 | ---- | ------- | ----------- | ---- | -------- |
 | 1. | Workload Simulator | Generates a set of simulated drill sensor data in CSV format | Data Source | [workload_generator](./workload_generator) |
-| 2. | Data bulk loading utility (*) | Load the raw sensor data into the raw data master DB | External utility |[DataStax Bulk Loader](https://docs.datastax.com/en/dsbulk/doc/index.html) |
-| 3. | Pulsar producer | Publish the raw sensor data to a Pulsar topic | Speed layer | [realtime_view/pulsar_producer](./realtime_view/pulsar_producer) |
+| 2. | Data bulk loading utility (*) | Load the raw sensor data into the raw data master DB | Batch Layer Data Loading |[DataStax Bulk Loader](https://docs.datastax.com/en/dsbulk/doc/index.html) |
+| 3. | Pulsar producer | Publish the raw sensor data to a Pulsar topic | Speed layer Data Loading | [realtime_view/pulsar_producer](./realtime_view/pulsar_producer) |
 | 4. | Pulsar function | Further real time stream processing to generate the real time view | Speed layer | [realtime_view/pulsar_function](./realtime_view/pulsar_function) |
-| 5. | Daily batch job | Daily ETL job to generate the batch view from the raw data master DB | Batch layer | [batch_view/daily_batch](./batch_view/daily_batch) |
+| 5. | Daily batch job | Daily ETL job to generate the batch view from the raw data master DB | Batch layer  | [batch_view/daily_batch](./batch_view/daily_batch) |
 
 **NOTE**: Other than the data loading utility (item 2), all other programs are custom made for the purpose of this demo.
 
