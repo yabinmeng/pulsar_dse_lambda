@@ -174,6 +174,14 @@ Running the following command to create the C* keyspaces and tables that are nee
 $ cqlsh -f drill_sensor.cql
 ```
 
+&#x2705; **Check Point**
+```
+3 empty tables should be created in C* without any data:
+- master.drillsensor_raw
+- batchview.drill_info_by_date
+- realtimeview.drill_warning_today
+```
+
 ## 3.2. Step 1: Generate simulated workload file
 
 The main program, **WorkloadGen**, used for generating the workload file takes the following input parameters:
@@ -216,6 +224,10 @@ DRL-003,SNS-temp-02,temp,2021-04-05,2021-04-05T16:34:43,467.64
 ... ... 
 ```
 
+&#x2705; **Check Point**
+```
+A CSV file with proper raw sensor data similar to the above is generated.
+```
 
 ## 3.3. Step 2-1: Load the source data into the batch layer (raw data masterDB)
  
@@ -229,6 +241,11 @@ $ dsbulk load \
    -header false \
    -m "0=drill_id, 1=sensor_id, 2=sensor_type, 3=reading_date, 4=reading_time, 5=reading_value" \
    --codec.timestamp CQL_TIMESTAMP
+```
+
+&#x2705; **Check Point**
+```
+raw data master DB (C* table "master.drillsensor_raw") should have all generated raw sensor data in it.
 ```
 
 ## 3.4. Step 2-2: Publish the source data to the speed layer (a Pulsar topic)
@@ -268,6 +285,11 @@ In this demo, each message (raw sensor data) that is published to the Pulsar top
 { "DrillID": "DRL-001", "SensorID": "SNS-temp-01", "SensorType": "temp", "ReadingTime": "2021-04-05T17:10:22", "ReadingValue": 399.000000 }
 ```
 
+&#x2705; **Check Point**
+```
+Pulsar topic "persistent://public/default/raw_sensor_data" should have messages that correspond to the generated raw sensor data.
+```
+
 ## 3.5. Step 3: Run batch job to generate the batch view
 
 At the batch layer, once the raw sensor data is stored in the master DB (e.g. **master.drillsensor_raw**), we can run a Spark job to simulate a batch job that runs regularly (e.g. daily). The Spark job can load, transform, aggregate, or do some other processing that satisfies the downstream analytical needs. 
@@ -301,6 +323,11 @@ An example of running this Spark job for daily batch processing is as below, ass
 $ dse spark-submit --master dse://<dse_server_ip>:9042 --deploy-mode cluster --class com.example.dailybatch dailybatch-assembly-1.0.jar
 ```
 
+&#x2705; **Check Point**
+```
+batch view DB (C* table "batchview.drill_info_by_date") should have the daily average drill temperature and speed data up to one day before the current date.
+```
+
 ## 3.6. Step 4-1: Deploy Pulsar function for real time stream processing
 
 In this demo, the speed layer also needs to do further real time stream processing in order to get the most recent sensor data (up to the last daily batch point) such that the temperature and speed reading value is beyond a certain upper limit (aks, warning sensor data). 
@@ -308,6 +335,11 @@ In this demo, the speed layer also needs to do further real time stream processi
 In Pulsar, real time stream processing is achieved through Pulsar function. 
 
 In this demo, a Pulsar function named *SensorWarnFilterFunc*, is developed to read each message from the input topic for raw sensor data (**persistent://public/default/raw_sensor_data**), filter it based on the message date/time and the reading value (to be higher than a threshold), and publish it to an output topic (**persistent://public/default/warning_sensor_data**).
+
+&#x2705; **Check Point**
+```
+Pulsar topic "persistent://public/default/warning_sensor_data" should ONLY have messages that correspond to the most recent (the current date) with warning signs. Older sensor data or normal sensor data should NOT show up in this topic.
+```
 
 ### 3.6.1. Deploy Pulsar Function
 
@@ -331,6 +363,11 @@ Once the Pular function is successfully deployed, any raw sensor data that is pu
 In this demo, these qualifying warning sensor data will be written to a real time view table (e.g. **realtimeview.drill_warning_today**).
 
 Pulsar has a C* sink connector out of the box. But it has very limited functionality such that it can't handle data with complex schema. DataStax has offered an [enhanced version of Pulsar C* sink connector](https://github.com/datastax/pulsar-sink) that handles more complex types like AVRO schema type.
+
+&#x2705; **Check Point**
+```
+real time view DB (C* table "realtimeview.drill_warning_today") should only have the daily warning sesnor data.
+```
 
 ### 3.7.1. Deploy DataStax Pulsar C* sink connector
 
