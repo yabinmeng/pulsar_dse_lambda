@@ -13,9 +13,9 @@ By the above diagram,
 
 * C* is used as the underlying storage mechanism for both the batch layer and the serving layer.
 * Spark is used to do data loading and processing in batch mode from the batch layer to the serving layer.
-* Pulsar is used as the underlying data processing and storage meachnism at the speed layer. 
-  * Pulsar function can be used for more complext realtime stream processing.
-  * Pulsar Cassandra connector can be used to land the processed realtime stream data into the serving layer.
+* Pulsar is used as the underlying data processing and storage mechanism at the speed layer. 
+  * Pulsar function can be used for more complex real time stream processing.
+  * Pulsar Cassandra connector can be used to land the processed real time stream data into the serving layer.
 * Through Spark SQL, the data of different views (batch and speed) and be queried by the end users in a powerful, robust yet flexible way.
 
 ## IoT Use Case Overview
@@ -23,12 +23,12 @@ By the above diagram,
 For demo purposes, this repository uses an imaginary Oil Well drilling sensor IoT use case. In this super simplified use case,
 * Each drilling site can have multiple drills
 * Each drill has 2 types of sensors. One for measuring drill temperature and another for measuring drill speed
-* The drill sensor data is constantly being collected at certain frequency (e.g. 1 second or 1 minute) and the collected data is fed into both the batch layer and the speed layer.
+* The drill sensor data is constantly being collected at a certain frequency (e.g. 1 second or 1 minute) and the collected data is fed into both the batch layer and the speed layer.
 
 For the batch layer, the raw sensor data will be processed daily in order to generate different batch views for downstream analytical purposes. In this demo, one specific batch view is created for the following purpose:
 * Get the average temperature and speed of all drills for every day.
 
-For the speed layer, the raw sensor data will be processed in real time and only the messages of the most recent date will be kept because older data is already (or can be) reflected in some batch views. The speed layer will then do further processing (e.g. filtering, transforming, or aggregating) of these data and generate realtime views accordingly, depending on the downstream needs. In this demo, one specific realtime view is created for the following purpose:
+For the speed layer, the raw sensor data will be processed in real time and only the messages of the most recent date will be kept because older data is already (or can be) reflected in some batch views. The speed layer will then do further processing (e.g. filtering, transforming, or aggregating) of these data and generate real time views accordingly, depending on the downstream needs. In this demo, one specific real time view is created for the following purpose:
 * Get the list of the drills that are either too hot or spinning too fast for the current day.
 
 ### Raw Data Format
@@ -58,7 +58,7 @@ In this demo, the following data schema (C* and Pulsar) is used for the above us
 
 ## C* Schema
 
-There are 3 C* tables needed for this demo. The CQL keyspace and table definition (*[drill_sensor.cql](./misc/drill_sensor.cql)*) is as bleow:
+There are 3 C* tables needed for this demo. The CQL keyspace and table definition (*[drill_sensor.cql](./misc/drill_sensor.cql)*) is as below:
 
 ```
 // Batch Layer - master DB
@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS batchview.drill_info_by_date (
 );
 
 
-// Serving Layer - realtime view
+// Serving Layer - real time view
 CREATE KEYSPACE IF NOT EXISTS realtimeview WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1 };
 CREATE TABLE IF NOT EXISTS realtimeview.drill_warning_today (
     drill_id text,
@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS realtimeview.drill_warning_today (
 
 ## Pulsar Schema 
 
-Pulsar has native schema support. In this demo, we're using the following Avro schema format (*[warning_sensor_data.avsc](./misc/warning_sensor_data.avsc)*) for the generated realtime view data.
+Pulsar has native schema support. In this demo, we're using the following Avro schema format (*[warning_sensor_data.avsc](./misc/warning_sensor_data.avsc)*) for the generated real time view data.
 
 ```
 {
@@ -122,14 +122,14 @@ Pulsar has native schema support. In this demo, we're using the following Avro s
 
 # Program Overview
 
-In this demo, there are several programs/utilities that altogther form a complete end-to-end data processing flow following the lambda architecture:
+In this demo, there are several programs/utilities that altogether form a complete end-to-end data processing flow following the lambda architecture:
 
 | Item | Program | Description | Note | Location |
 | ---- | ------- | ----------- | ---- | -------- |
-| 1. | Workload Simulator | Generates a set of simulated drill sesnor data in CSV format | Data Source | [workload_generator](./workload_generator) |
+| 1. | Workload Simulator | Generates a set of simulated drill sensor data in CSV format | Data Source | [workload_generator](./workload_generator) |
 | 2. | Data bulk loading utility (*) | Load the raw sensor data into the raw data master DB | External utility |[DataStax Bulk Loader](https://docs.datastax.com/en/dsbulk/doc/index.html) |
 | 3. | Pulsar producer | Publish the raw sensor data to a Pulsar topic | Speed layer | [realtime_view/pulsar_producer](./realtime_view/pulsar_producer) |
-| 4. | Pulsar function | Further realtime stream processing to generate the realtime view | Speed layer | [realtime_view/pulsar_function](./realtime_view/pulsar_function) |
+| 4. | Pulsar function | Further real time stream processing to generate the real time view | Speed layer | [realtime_view/pulsar_function](./realtime_view/pulsar_function) |
 | 5. | Daily batch job | Daily ETL job to generate the batch view from the raw data master DB | Batch layer | [batch_view/daily_batch](./batch_view/daily_batch) |
 
 **NOTE**: Other than the data loading utility (item 2), all other programs are custom made for the purpose of this demo.
@@ -138,6 +138,9 @@ In this demo, there are several programs/utilities that altogther form a complet
 With these programs and utilities, the high level end-to-end data processing flow is as below:
 
 ## Pre-step: Create C* Keyspace and Table
+
+Running the following command to create the C* keyspaces and tables that are needed for the demo.
+
 ```
 $ cqlsh -f drill_sensor.cql
 ```
@@ -155,7 +158,7 @@ WorkloadGen:
   -o,--output <arg> Output CSV file name.
 ```
 
-Among these paramters, *-f/--config* specifies the configuration property file path that controls how the drill sensor data is generated, which has the following configuration properties. An example file can be found [here](./workload_generator/src/main/resources/generator.properties).
+Among these parameters, *-f/--config* specifies the configuration property file path that controls how the drill sensor data is generated, which has the following configuration properties. An example file can be found [here](./workload_generator/src/main/resources/generator.properties).
 
 | Property Name | Description |
 | ------------- | ----------- |
@@ -163,10 +166,10 @@ Among these paramters, *-f/--config* specifies the configuration property file p
 | sensor_types | the list of sensor types (separated by ',') |
 | sensor_num_per_type | the number of sensors per type |
 | workload_frequency | the frequency of one batch of the sample data records being generated. One batch of the sample data covers all sensors under all types for all drills |
-| workload_period | the total time range that the sample data will be generated |
+| workload_period | the total time range within which the sample data will be generated per the specified frequency |
 | workload_enddate | the end date of the simulated workload |
 
-An example of running this proram to generate a workload file is as below, assuming the generated Jar file name is *Workload_Generator-1.0-SNAPSHOT-all.jar*
+An example of running this program to generate a workload file is as below, assuming the generated Jar file name is *Workload_Generator-1.0-SNAPSHOT-all.jar*
 
 ```
 $ java -jar Workload_Generator-1.0-SNAPSHOT-all.jar -f </path/to/generator.properties> -o </path/to/workload_gen.csv>
@@ -199,7 +202,7 @@ $ dsbulk load \
    --codec.timestamp CQL_TIMESTAMP
 ```
 
-## Step 2-2: Publish the source data to the speed layer 
+## Step 2-2: Publish the source data to the speed layer (a Pulsar topic)
 
 The main program, **SensorDataProducer**, used for publishing the generated workload file into a Pulsar topic takes the following input parameters:
 
@@ -212,7 +215,7 @@ SensorDataProducer options:
   -w,--workload <arg> Input workload source file.
 ```
 
-Among these paramters, *-f/--config* specifies the configuration property file path that controls how the drill sensor data is generated, which has the following configuration properties. An example file can be found [here](./realtime_view/pulsar_producer/src/main/resources/pulsar.properties).
+Among these parameters, *-f/--config* specifies the configuration property file path that controls how the drill sensor data is generated, which has the following configuration properties. An example file can be found [here](./realtime_view/pulsar_producer/src/main/resources/pulsar.properties).
 
 | Property Name | Description |
 | ------------- | ----------- |
@@ -224,12 +227,106 @@ Among these paramters, *-f/--config* specifies the configuration property file p
 | schema.definition | Only applicable when the schema type is AVRO. This is the file path that defines the AVRO schema content |
 | client.xxx | Pulsar client connection specific parameters |
 
+An example of running this program to publish the workload to a Pulsar topic (e.g. persistent://public/default/raw_sensor_data) is as below, assuming the generated Jar file name is *SensorDataProducer-1.0-SNAPSHOT-all.jar*
 
+```
+$ java -jar SensorDataProducer-1.0-SNAPSHOT-all.jar -f </path/to/pulsar.properties> -w </path/to/workload_gen.csv>
+```
 
+In this demo, each message (raw sensor data) that is published to the Pulsar topic has a payload in JSON format, as below.
 
+```
+{ "DrillID": "DRL-001", "SensorID": "SNS-temp-01", "SensorType": "temp", "ReadingTime": "2021-04-05T17:10:22", "ReadingValue": 399.000000 }
+```
 
 ## Step 3: Run batch job to generate the batch view
 
-## Step 4-1: Deploy Pulsar function for realtime stream processing
+At the batch layer, once the raw sensor data is stored in the master DB (e.g. **master.drillsensor_raw**), we can run a Spark job to simulate a batch job that runs regularly (e.g. daily). The Spark job can load, transform, aggregate, or do some other processing that satisfies the downstream analytical needs. 
 
-## Step 4-2: Deploy Pulsar Cassandra sink connector to generate the realtime view
+The result of the Spark job in this demo is that the daily aggregated sensor data is written into a batch view table (e.g. **batchview.drill_info_by_date**) that we can check each drill's average temperature and speed per day.
+
+The Spark job (written in *Scala*) expects the following properties to be defined in a file named **application.conf**. The content of this file is very straightforward, which defines the DSE server contact point IP address, source C* keyspace and table, as well as the target C* keyspace and table! 
+
+```
+conf {
+    dse {
+        contact_point_ip = "<dse_server_ip>"
+        contact_point_port = 9042
+    }
+
+    source {
+        ks_name = "master"
+        tbl_name = "drillsensor_raw"
+    }
+
+    target {
+        ks_name = "batchview"
+        tbl_name = "drill_info_by_date"
+    }
+}
+```
+
+An example of running this Spark job for daily batch processing is as below, assuming the generated Jar file name is *dailybatch-assembly-1.0.jar*
+
+```
+$ dse spark-submit --master dse://<dse_server_ip>:9042 --deploy-mode cluster --class com.example.dailybatch dailybatch-assembly-1.0.jar
+```
+
+## Step 4-1: Deploy Pulsar function for real time stream processing
+
+In this demo, the speed layer also needs to do further real time stream processing in order to get the most recent sensor data (up to the last daily batch point) such that the temperature and speed reading value is beyond a certain upper limit (aks, warning sensor data). 
+
+In Pulsar, real time stream processing is achieved through Pulsar function. 
+
+In this demo, a Pulsar function named *SensorWarnFilterFunc*, is developed to read each message from the input topic for raw sensor data (**persistent://public/default/raw_sensor_data**), filter it based on the message date/time and the reading value (to be higher than a threshold), and publish it to an output topic (**persistent://public/default/warning_sensor_data**).
+
+### Deploy Pulsar Function
+
+In this demo, the Pulsar function, assuming its Jar name is *SensorWarningFilter-1.0-SNAPSHOT-all.jar*, needs to be deployed in the Pulsar cluster before using it. One way to deploy it is through *pulsar-admin* CLI command, as below:
+
+```
+pulsar-admin functions create \
+  --name SensorWarningFilter \
+  --jar SensorWarningFilter-1.0-SNAPSHOT-all.jar> \
+  --classname com.example.SensorWarnFilterFunc \
+  --auto-ack true \
+  --inputs persistent://public/default/raw_sensor_data \
+  --output persistent://public/default/warning_sensor_data \
+  --log-topic persistent://public/default/sensor_warning_filter_log
+```
+
+## Step 4-2: Deploy Pulsar Cassandra sink connector to generate the real time view
+
+Once the Pular function is successfully deployed, any raw sensor data that is published from the source (producer) will be automatically processed by this function on the fly. Any qualifying sensor data that is after the last daily batch processing and shows high temperature and speed values will be published to another Pulsar topic for further processing.
+
+In this demo, these qualifying warning sensor data will be written to a real time view table (e.g. **realtimeview.drill_warning_today**).
+
+Pulsar has a C* sink connector out of the box. But it has very limited functionality such that it can't handle data with complex schema. DataStax has offered an [enhanced version of Pulsar C* sink connector](https://github.com/datastax/pulsar-sink) that handles more complex types like AVRO schema type.
+
+### Deploy DataStax Pulsar C* sink connector
+
+Use the following steps to deploy a DataStax (DS) Pulsar C* sink connector:
+
+1. Download the latest DS Pulsar C* sink connector release([GitHub Repo]https://docs.datastax.com/en/pulsar-connector/1.4/index.html)
+
+2. Put the unzipped NAR file (*cassandra-enhanced-pulsar-sink-1.4.0.nar*) into the following Pulsar binary subfolder and restart Pulsar servers
+```
+<PULSAR_HOMEDIR>/connectors/
+``` 
+
+3. Define a connector yaml file (example: [dse-sink.yaml](./misc/realtimeview/cass_sink/dse_sink.yaml)) that defines:
+   * DSE client connection properties, such as for authentication, TLS encryption, etc.
+   * Pulsar topic to C* keyspace/table mapping
+
+4. Deploy the sink connector using *pulsar-admin* CLI command, as below:
+```
+pulsar-admin sinks create \
+    --name sensor_warning_cass_sink \
+    --sink-config-file `pwd`/dse_sink.yaml \
+    --sink-type cassandra-enhanced \
+    --tenant public \
+    --namespace default \
+    --inputs persistent://public/default/warning_sensor_data
+```
+
+Once the DS Pular C* sink connector is successfully deployed, any message that is published to the warning sensor topic will be automatically written into the real time view table.
