@@ -3,3 +3,5 @@
 /zzz_backup
 misc/realtimeview/function/SensorWarningFilter-1.0-SNAPSHOT-all.jar
 misc/realtimeview/function/Notes
+lambda_demo_en.code-workspace
+.gitignore
