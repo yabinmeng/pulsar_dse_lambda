@@ -19,7 +19,7 @@
 
 # 1. Overview
 
-[Lambda architecture](https://en.wikipedia.org/wiki/Lambda_architecture) is a popular data-processing architecture pattern in addressing the challenges (such as latency, throughput, and latency) in the world of ***BIG*** data (or data lake). In this repository, I'm demonstrating how to implement the lambda architecture for a (simulated) IoT use case with several industry leading technologies that are best known for their capabilities in dealing with large amounts of data with large scale and high performance, either for batch-oriented data processing or real-time data processing.
+[Lambda architecture](https://en.wikipedia.org/wiki/Lambda_architecture) is a popular data-processing architecture pattern in addressing the challenges (such as latency, throughput, and latency) in the world of big data (or data lake). In this repository, I'm demonstrating how to implement the lambda architecture for a (simulated) IoT use case with several industry leading technologies that are best known for their capabilities in dealing with large amounts of data with large scale and high performance, either for batch-oriented data processing or real-time data processing.
 * [Apache Cassandra (C*)](https://cassandra.apache.org/)
 * [Apache Spark (Spark)](http://spark.apache.org/)
 * [Apache Pulsar (Pulsar)](https://pulsar.apache.org/)
@@ -231,7 +231,7 @@ A CSV file with proper raw sensor data similar to the above is generated.
 
 ## 3.3. Step 2-1: Load the source data into the batch layer (raw data masterDB)
  
-Using DataStax bulk loader command line utility to load data from a CSV into a C* table is very simple yet efficient. In this demo, the command to do the bulk loading is as below:
+Using DataStax bulk loader command line utility to load data from a CSV into a C* table is simple yet efficient. In this demo, the command to do the bulk loading is as below:
 
 ```
 $ dsbulk load \
@@ -296,7 +296,7 @@ At the batch layer, once the raw sensor data is stored in the master DB (e.g. **
 
 The result of the Spark job in this demo is that the daily aggregated sensor data is written into a batch view table (e.g. **batchview.drill_info_by_date**) that we can check each drill's average temperature and speed per day.
 
-The Spark job (written in *Scala*) expects the following properties to be defined in a file named **application.conf**. The content of this file is very straightforward, which defines the DSE server contact point IP address, source C* keyspace and table, as well as the target C* keyspace and table! 
+The Spark job (written in *Scala*) expects the following properties to be defined in a file named **application.conf**. The content of this file is straightforward, which defines the DSE server contact point IP address, source C* keyspace and table, as well as the target C* keyspace and table! 
 
 ```
 conf {
