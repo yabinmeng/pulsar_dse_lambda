@@ -144,7 +144,7 @@ $ cqlsh -f drill_sensor.cql
 
 ## Step 1: Generate simulated workload file
 
-The main program, **WorkloadGen**, used for generating the simulated workload file takes the following input parameters:
+The main program, **WorkloadGen**, used for generating the workload file takes the following input parameters:
 
 ```
 usage: WorkloadGen [-f <arg>] [-h] [-o <arg>]
@@ -155,24 +155,78 @@ WorkloadGen:
   -o,--output <arg> Output CSV file name.
 ```
 
-Among these paramters, *-f/--config* specifies the configuration property file locaiont that controls how the drill sensor data is generated, which has the following configuration properties:
-* drill_num: the total number of drills
-* sensor_types: the list of sensor types (separated by ',')
-* sensor_num_per_type: the number of sensors per type
-* workload_frequency: the frequency of one batch of the sample data records being generated. One batch of the sample data covers all sensors under all types for all drills.
-* workload_period: the total time range that the sample data will be generated
-* workload_enddate: the end date of the simulated workload
+Among these paramters, *-f/--config* specifies the configuration property file path that controls how the drill sensor data is generated, which has the following configuration properties. An example file can be found [here](./workload_generator/src/main/resources/generator.properties).
 
-An example file (*generator.properties*) can be found [here](./workload_generator/src/main/resources/generator.properties). 
+| Property Name | Description |
+| ------------- | ----------- |
+| drill_num | the total number of drills |
+| sensor_types | the list of sensor types (separated by ',') |
+| sensor_num_per_type | the number of sensors per type |
+| workload_frequency | the frequency of one batch of the sample data records being generated. One batch of the sample data covers all sensors under all types for all drills |
+| workload_period | the total time range that the sample data will be generated |
+| workload_enddate | the end date of the simulated workload |
 
-An example of running this proram to generate a workload file is as below:
-
-```
-$ java -jar build/libs/Workload_Generator-1.0-SNAPSHOT-all.jar -f </path/to/generator.properties> -o </path/to/workload_gen.csv>
+An example of running this proram to generate a workload file is as below, assuming the generated Jar file name is *Workload_Generator-1.0-SNAPSHOT-all.jar*
 
 ```
+$ java -jar Workload_Generator-1.0-SNAPSHOT-all.jar -f </path/to/generator.properties> -o </path/to/workload_gen.csv>
+```
 
-## Step 2: Load the source data into the batch layer and the speed layer
+The generated workload file has content like below:
+
+```
+DRL-001,SNS-temp-01,temp,2021-04-05,2021-04-05T16:34:43,344.33
+DRL-001,SNS-speed-02,speed,2021-04-05,2021-04-05T16:34:43,2963.67
+DRL-002,SNS-temp-01,temp,2021-04-05,2021-04-05T16:34:43,394.68
+DRL-002,SNS-temp-02,temp,2021-04-05,2021-04-05T16:34:43,243.21
+DRL-003,SNS-speed-01,speed,2021-04-05,2021-04-05T16:34:43,2764.85
+DRL-003,SNS-temp-02,temp,2021-04-05,2021-04-05T16:34:43,467.64
+... ... 
+```
+
+
+## Step 2-1: Load the source data into the batch layer (raw data masterDB)
+ 
+Using DataStax bulk loader command line utility to load data from a CSV into a C* table is very simple yet efficient. In this demo, the command to do the bulk loading is as below:
+
+```
+$ dsbulk load \
+   -h <dse_server_ip> \
+   -url <workload_file_path> \
+   -k master -t drillsensor_raw \
+   -header false \
+   -m "0=drill_id, 1=sensor_id, 2=sensor_type, 3=reading_date, 4=reading_time, 5=reading_value" \
+   --codec.timestamp CQL_TIMESTAMP
+```
+
+## Step 2-2: Publish the source data to the speed layer 
+
+The main program, **SensorDataProducer**, used for publishing the generated workload file into a Pulsar topic takes the following input parameters:
+
+```
+usage: SensorDataProducer [-f <arg>] [-h] [-w <arg>]
+
+SensorDataProducer options:
+  -f,--config <arg>   Pulsar cluster connection configuration file.
+  -h,--help           Displays this help message.
+  -w,--workload <arg> Input workload source file.
+```
+
+Among these paramters, *-f/--config* specifies the configuration property file path that controls how the drill sensor data is generated, which has the following configuration properties. An example file can be found [here](./realtime_view/pulsar_producer/src/main/resources/pulsar.properties).
+
+| Property Name | Description |
+| ------------- | ----------- |
+| web_svc_url | Pulsar HTTP(s) service URL |
+| pulsar_svc_url | Pulsar broker service URL |
+| topic_uri | Pulsar topic name that the workload is published to |
+| authNEnabled | Whether Pulsar authentication is enabled |
+| schema.type | Pulsar schema type. Currently only supports AVRO type or BYTE[] type (default) |
+| schema.definition | Only applicable when the schema type is AVRO. This is the file path that defines the AVRO schema content |
+| client.xxx | Pulsar client connection specific parameters |
+
+
+
+
 
 ## Step 3: Run batch job to generate the batch view
 
