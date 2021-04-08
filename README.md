@@ -47,7 +47,7 @@ For Pulsar deployment, OSS Pulsar is used with version **2.7.1**.
 
 ## 1.2. IoT Use Case Overview
 
-For demo purposes, this repository uses an imaginary Oil Well drilling sensor IoT use case. In this super simplified use case,
+In this demo, we use a super simplified Oil Well drilling sensor IoT use case.
 * Each drilling site can have multiple drills
 * Each drill has 2 types of sensors. One for measuring drill temperature and another for measuring drill speed
 * The drill sensor data is constantly being collected at a certain frequency (e.g. 1 second or 1 minute) and the collected data is fed into both the batch layer and the speed layer.
