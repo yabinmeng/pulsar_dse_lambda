@@ -5,7 +5,7 @@
 - [2. Data Schema](#2-data-schema)
   - [2.1. C* Schema](#21-c-schema)
   - [2.2. Pulsar Schema](#22-pulsar-schema)
-- [3. Program Overview](#3-program-overview)
+- [3. Demo Program Overview](#3-demo-program-overview)
   - [3.1. Pre-step: Create C* Keyspace and Table](#31-pre-step-create-c-keyspace-and-table)
   - [3.2. Step 1: Generate simulated workload file](#32-step-1-generate-simulated-workload-file)
   - [3.3. Step 2-1: Load the source data into the batch layer (raw data masterDB)](#33-step-2-1-load-the-source-data-into-the-batch-layer-raw-data-masterdb)
@@ -147,7 +147,7 @@ Pulsar has native schema support. In this demo, we're using the following Avro s
 
 ---
 
-# 3. Program Overview
+# 3. Demo Program Overview
 
 In this demo, there are several programs/utilities that altogether form a complete end-to-end data processing flow following the lambda architecture:
 

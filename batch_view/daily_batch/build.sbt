@@ -3,7 +3,7 @@ lazy val root = (project in file(".")).
     name := "dailybatch",
     version := "1.0",
     scalaVersion := "2.11.12",
-    mainClass in Compile := Some("com.example.loaddvd")
+    mainClass in Compile := Some("com.example.dailybatch")
   )
 
 resolvers += "DataStax Repo" at "https://repo.datastax.com/public-repos/"
