@@ -55,8 +55,10 @@ For demo purposes, this repository uses an imaginary Oil Well drilling sensor Io
 For the batch layer, the raw sensor data will be processed daily in order to generate different batch views for downstream analytical purposes. In this demo, one specific batch view is created for the following purpose:
 * Get the average temperature and speed of all drills for every day.
 
-For the speed layer, the raw sensor data will be processed in real time and only the messages of the most recent date will be kept because older data is already (or can be) reflected in some batch views. The speed layer will then do further processing (e.g. filtering, transforming, or aggregating) of these data and generate real time views accordingly, depending on the downstream needs. In this demo, one specific real time view is created for the following purpose:
-* Get the list of the drills that are either too hot or spinning too fast for the current day.
+For the speed layer, the raw sensor data will be processed in real time and only the messages of the most recent date will be kept because older data is already reflected in some batch views. The speed layer will then do further processing (e.g. filtering, transforming, or aggregating) of these data and generate real time views accordingly, depending on the downstream needs. 
+
+In this demo, one specific real time view is created for the following purpose:
+* Get the list of the drills that have the risk of either being too hot or spinning too fast for the current day.
 
 ### 1.2.1. Raw Data Format
 
@@ -127,7 +129,7 @@ CREATE TABLE IF NOT EXISTS realtimeview.drill_warning_today (
 
 ## 2.2. Pulsar Schema 
 
-Pulsar has native schema support. In this demo, we're using the following Avro schema format (*[warning_sensor_data.avsc](./misc/warning_sensor_data.avsc)*) for the generated real time view data.
+Pulsar has native schema support. In this demo, we're using the following Avro schema format (*[warning_sensor_data.avsc](./misc/warning_sensor_data.avsc)*) for the generated real time view data (warning sensor data).
 
 ```
 {
