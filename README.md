@@ -336,7 +336,7 @@ Pulsar has a C* sink connector out of the box. But it has very limited functiona
 
 Use the following steps to deploy a DataStax (DS) Pulsar C* sink connector:
 
-1. Download the latest DS Pulsar C* sink connector release([GitHub Repo]https://docs.datastax.com/en/pulsar-connector/1.4/index.html)
+1. Download the latest DS Pulsar C* sink connector release([GitHub Repo](https://docs.datastax.com/en/pulsar-connector/1.4/index.html)
 
 2. Put the unzipped NAR file (*cassandra-enhanced-pulsar-sink-1.4.0.nar*) into the following Pulsar binary subfolder and restart Pulsar servers
 ```
